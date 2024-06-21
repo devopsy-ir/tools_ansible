@@ -12,7 +12,7 @@ ansible-playbook -i hosts.yml nginx_nexus.yml
 
 # Nexus
 echo "Copy Nexus docker images ..."
-rsync  -qazhPW --inplace  --progress ./nexus/volumes ${tools_dir}/nexus/
+rsync  -qazhPW --inplace  --progress ./nexus.volumes ${tools_dir}/nexus/
 
 echo "Up Nexus ..."
 ansible-playbook -i hosts.yml nexus.yml
