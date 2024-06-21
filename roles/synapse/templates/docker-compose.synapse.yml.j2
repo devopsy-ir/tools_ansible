@@ -1,0 +1,38 @@
+services:
+  synapse:
+    tty: true
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: always
+    image: docker.{{ domain }}/matrixdotorg/synapse:${SYNAPSE_VERSION}
+    volumes:
+      - ./data:/data
+    ports:
+      - 127.0.0.1:${SYNAPSE_PORT}:8008
+      - 127.0.0.1:${MANHOLE_PORT}:9000
+    entrypoint: ["/bin/bash","-c"]
+    command:
+      - |
+         mkdir -p /data/{media_store,uploads,logs}
+         chown 991:991 /data/{media_store,uploads,logs}
+         /start.py
+
+  postgres:
+    image: docker.{{ domain }}/postgres:${POSTGRES_VERSION}
+    restart: always
+    volumes:
+        - ${POSTGRES_VOLUME}:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      POSTGRES_USER: "${POSTGRES_USER}"
+      POSTGRES_DB: "${POSTGRES_DB}"
+      POSTGRES_INITDB_ARGS: '--encoding=UTF-8 --lc-collate=C --lc-ctype=C'
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    healthcheck:
+#      test: [ "CMD-SHELL", "pg_isready -d `cat $$POSTGRES_DB_FILE` -U `cat $$PGUSER_FILE`" ]
+      test: "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"
+      interval: 2s
+      timeout: 5s
+      retries: 10

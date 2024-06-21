@@ -1,0 +1,31 @@
+#!/usr/bin/env ansible-playbook
+---
+- name: Create a directory if it does not exist
+  file:
+    state: directory
+    path: "{{ tools_dir }}/nexus"
+    mode: '0755'
+
+- name: Copy compose file
+  become: true
+  tags:
+    - copy_compose
+  template:
+    src: "docker-compose.nexus.yml.j2"
+    dest: "{{ tools_dir }}/nexus/docker-compose.yml"
+    owner: root
+    group: root
+    mode: 0644
+
+#- name: Copy nexus volumes dir
+#  copy:
+#    src: "{{playbook_dir}}/../volumes"
+#    dest: "{{tools_dir}}/nexus/"
+
+- name: Up nexus
+  become: true
+  tags:
+    - up_nexus
+  command: 'docker compose up -d'
+  args:
+    chdir: "{{tools_dir}}/nexus"

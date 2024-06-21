@@ -1,0 +1,4 @@
+---
+- hosts: matrix
+  roles:
+    - { role: '{{playbook_dir}}/roles/nginx'}

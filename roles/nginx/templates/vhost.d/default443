@@ -1,0 +1,14 @@
+access_log /var/log/nginx/access.log;
+ssl_session_cache shared:SSL:50m;
+ssl_stapling on;
+ssl_stapling_verify on;
+add_header Strict-Transport-Security "max-age=31536000" always;
+location ^~ /.well-known/acme-challenge/ {
+    auth_basic off;
+    auth_request off;
+    allow all;
+    root /usr/share/nginx/html;
+    try_files $uri =404;
+    break;
+}
+#include /var/www/certs/old/options-ssl-nginx.conf;

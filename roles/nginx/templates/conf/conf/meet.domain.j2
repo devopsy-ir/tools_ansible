@@ -1,0 +1,77 @@
+server_names_hash_bucket_size 64;
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name meet.{{ domain }};
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+upstream meet {
+  server 127.0.0.1:8443;
+}
+
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name meet.{{ domain }};
+
+    # Mozilla Guideline v5.4, nginx 1.17.7, OpenSSL 1.1.1d, intermediate configuration
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384;
+    ssl_prefer_server_ciphers off;
+
+    ssl_session_timeout 1d;
+    ssl_session_cache shared:SSL:10m;  # about 40000 sessions
+    ssl_session_tickets off;
+
+    add_header Strict-Transport-Security "max-age=63072000" always;
+    set $prefix "";
+    set $custom_index "";
+    set $config_js_location /etc/jitsi/meet/meet.domain-config.js;
+
+    ssl_certificate /var/www/certs/ssl/domain/cert.crt;
+    ssl_certificate_key /var/www/certs/ssl/domain/priv.key;
+
+    # ssi on with javascript for multidomain variables in config.js
+    ssi on;
+    ssi_types application/x-javascript application/javascript;
+
+    error_page 404 /static/404.html;
+
+    gzip on;
+    gzip_types text/plain text/css application/javascript application/json image/x-icon application/octet-stream application/wasm;
+    gzip_vary on;
+    gzip_proxied no-cache no-store private expired auth;
+    gzip_min_length 512;
+
+#    include /etc/jitsi/meet/jaas/*.conf;
+
+    location / {
+      proxy_pass https://meet;
+    }
+
+location /xmpp-websocket {
+    proxy_pass https://127.0.0.1:8443;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+}
+location /colibri-ws {
+    proxy_pass https://127.0.0.1:9090;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+}
+
+location /http-bind {
+    proxy_pass https://127.0.0.1:8443;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+}
+
+}

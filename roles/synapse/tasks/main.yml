@@ -1,0 +1,73 @@
+#!/usr/bin/env ansible-playbook
+---
+- name: Copy synapse env
+  become: true
+  tags:
+    - copy_synapse_env
+  template:
+    src: "env.synapse.j2"
+    dest: "{{ tools_dir }}/matrix/synapse/.env"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: docker pull synapse
+  command: "docker pull docker.{{ domain }}/matrixdotorg/synapse:{{ SYNAPSE_VERSION }}"
+  args:
+    chdir: "{{ tools_dir }}"
+
+- name: generate synapse config
+  command: "docker run -it --rm --mount type=volume,src=infra_synapse_data,dst=/data -e SYNAPSE_SERVER_NAME={{ domain }} -e SYNAPSE_REPORT_STATS=no docker.{{ domain }}/matrixdotorg/synapse:{{ SYNAPSE_VERSION }} generate"
+  args:
+    chdir: "{{ tools_dir }}"
+
+- name: Copy synapse docker compose yaml
+  become: true
+  tags:
+    - copy_synapse_docker_compose
+  template:
+    src: "docker-compose.synapse.yml.j2"
+    dest: "{{ tools_dir }}/matrix/synapse/docker-compose.yml"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: docker compose down api
+  command: 'docker compose down'
+  args:
+    chdir: "{{ tools_dir }}/matrix/synapse"
+
+- name: move synapse homeserver
+  command: "mv /var/lib/docker/volumes/infra_synapse_data/_data/homeserver.yaml {{ tools_dir }}/matrix/synapse/data/homeserver.yaml"
+  args:
+    creates: "{{ tools_dir }}/matrix/synapse/data"
+
+- name: move synapse log config
+  command: "mv /var/lib/docker/volumes/infra_synapse_data/_data/{{ domain }}.log.config {{ tools_dir }}/matrix/synapse/data/{{ domain }}.log.config"
+  args:
+    creates: "{{ tools_dir }}/matrix/synapse/data"
+
+- name: move synapse signing key
+  command: "mv /var/lib/docker/volumes/infra_synapse_data/_data/{{ domain }}.signing.key {{ tools_dir }}/matrix/synapse/data/{{ domain }}.signing.key"
+  args:
+    creates: "{{ tools_dir }}/matrix/synapse/data"
+
+- name: modify homeserver database
+  command: "sed  '/^database:/{n;s/name:.*/name: psycopg2\n  txn_limit: 10000/;}' data/homeserver.yaml"
+  args:
+    chdir: "{{ tools_dir }}/matrix/synapse"
+
+- name: modify homeserver database
+  command: "sed -E '/^\\s*args:/{n;s/database:.*/user: {{ POSTGRES_USER }}\n    password: {{ POSTGRES_PASSWORD }}\n    database: synapse\n    host: postgres\n    port: 5432\n    cp_min: 5\n    cp_max: 10/;}' data/homeserver.yaml"
+  args:
+    chdir: "{{ tools_dir }}/matrix/synapse"
+
+- name: docker compose up api
+  command: 'docker compose up -d'
+  args:
+    chdir: "{{ tools_dir }}/matrix/synapse"
+
+- name: create synapse admin
+  command: "docker compose exec synapse register_new_matrix_user -u {{ SYNAPSE_ADMIN }} -p {{ SYNAPSE_ADMIN_PASSWORD }} -a -c /data/homeserver.yaml http://localhost:8008"
+  args:
+    chdir: "{{ tools_dir }}/matrix/synapse"

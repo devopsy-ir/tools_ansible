@@ -1,0 +1,85 @@
+#!/usr/bin/env ansible-playbook
+---
+- name: Copy compose file
+  become: true
+  tags:
+    - copy_compose
+  template:
+    src: "docker-compose.nginx.yml.j2"
+    dest: "{{ tools_dir }}/nginx/docker-compose.yml"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Copy nginx conf
+  become: true
+  tags:
+    - copy_nginx_conf
+  template:
+    src: "nginx.conf"
+    dest: "{{ tools_dir }}/nginx/conf/nginx.conf"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Copy default conf
+  become: true
+  tags:
+    - copy_nginx_default_conf
+  template:
+    src: "default.conf.j2"
+    dest: "{{ tools_dir }}/nginx/conf/default.conf"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Copy dir vhost.d
+  copy:
+    src: vhost.d    # note the '/' <-- !!!
+    dest: {{ tools_dir }}/nginx/
+
+- name: Copy dir modules
+  copy:
+    src: modules
+    dest: {{ tools_dir }}/nginx/
+
+- name: Copy dir snippets
+  copy:
+    src: snippets
+    dest: {{ tools_dir }}/nginx/
+
+#- name: Copy nginx jitsi dir
+#  become: true
+#  tags:
+#    - copy_nginx_jitsi_dir
+#  template:
+#    src
+
+#- name: Template complete tree of jitsi dir
+#  template:
+#    src: '{{ item.src }}'
+#    dest: {{ tools_dir }}/nginx/conf/jitsi/{{ item.path }}
+#    force: yes
+#  with_filetree: jitsi/
+#  when: item.state == 'file'
+
+- name: copy nginx conf dir
+  become: true
+  template:
+    src: "{{ item }}"
+    dest: {{ tools_dir }}/nginx/conf/conf/{{ item | basename | regex_replace('\\.j2$', '') }}
+  with_fileglob:
+    - ../templates/conf/conf/*.j2
+
+- name: create self signed ssl certs
+  command: 'openssl genrsa -out ca.key 2048 && openssl req -new -x509 -days 365 -key ca.key -subj "/C=CN/ST=GD/L=SZ/O=Acme, Inc./CN=Acme Root CA" -out ca.crt && openssl req -newkey rsa:2048 -nodes -keyout priv.key -subj "/C=CN/ST=GD/L=SZ/O=Acme, Inc./CN=*.{{ domain }}" -out cert.crt && openssl x509 -req -extfile <(printf "subjectAltName=DNS:{{ domain }},DNS:www.{{ domain }}") -days 365 -in cert.crt -CA ca.crt -CAkey ca.key -CAcreateserial -out cert.crt'
+  args:
+    chdir: "{{ tools_dir }}/nginx/conf/certs/ssl/domain"
+
+- name: Up nginx
+  become: true
+  tags:
+    - up_nginx
+  command: 'docker compose up -d'
+  args:
+    chdir: "{{tools_dir}}/nginx"

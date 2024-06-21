@@ -1,0 +1,38 @@
+#!/usr/bin/env ansible-playbook
+---
+- name: copy web env
+  become: true
+  tags:
+    - copy_web_env
+  template:
+    src: "env.web.j2"
+    dest: "{{ tools_dir }}/matrix/web/.env"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: copy web config
+  become: true
+  tags:
+    - copy_web_config
+  template:
+    src: "element-config.json.j2"
+    dest: "{{ tools_dir }}/matrix/web/element-config.json"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: docker pull web
+  command: "docker pull docker.{{ domain }}/vectorim/element-web:{{ ELEMENT_WEB_VERSION }}"
+  args:
+    chdir: "{{ tools_dir }}"
+
+- name: docker compose down api
+  command: 'docker compose down'
+  args:
+    chdir: "{{ tools_dir }}/matrix/web"
+
+- name: docker compose up api
+  command: 'docker compose up -d'
+  args:
+    chdir: "{{ tools_dir }}/matrix/web"
