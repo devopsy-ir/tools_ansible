@@ -1,0 +1,38 @@
+#!/usr/bin/env ansible-playbook
+---
+- name: copy jitsi env
+  become: true
+  tags:
+    - copy_jitsi_env
+  template:
+    src: "env.jitsi.j2"
+    dest: "{{ tools_dir }}/jitsi/.env"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: copy compose
+  become: true
+  tags:
+    - copy_jitsi_compose
+  template:
+    src: "docker-compose.jitsi.yml.j2"
+    dest: "{{ tools_dir }}/jitsi/"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: docker pull jitsi images
+  command: "docker compose pull"
+  args:
+    chdir: "{{ tools_dir }}/jitsi"
+
+- name: down jitsi
+  command: 'docker compose down'
+  args:
+    chdir: "{{ tools_dir }}/jitsi"
+
+- name: up jitsi
+  command: 'docker compose up -d'
+  args:
+    chdir: "{{ tools_dir }}/jitsi"

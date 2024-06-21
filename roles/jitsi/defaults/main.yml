@@ -1,0 +1,7 @@
+---
+# Python interpreter
+ansible_python_interpreter: /usr/bin/python3
+
+ELEMENT_WEB_VERSION: v1.11.68
+
+SYNAPSE_ADMIN_VERSION: 0.10.1
