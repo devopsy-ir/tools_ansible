@@ -1,5 +1,5 @@
 ---
-- hosts: all
+- hosts: target
   roles:
     - { role: '{{playbook_dir}}/roles/synapse'}
     - { role: '{{playbook_dir}}/roles/web'}

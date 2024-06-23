@@ -23,3 +23,6 @@ ansible-playbook -i hosts.yml nginx_matrix.yml
 
 # Matrix
 ansible-playbook -i hosts.yml matrix.yml
+
+# Jitsi
+ansible-playbook -i hosts.yml jitsi.yml
