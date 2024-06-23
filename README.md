@@ -21,6 +21,7 @@ ssh-copy-id root@matrix
 Add: 'StrictHostKeyChecking=accept-new' to your ssh config
 
 ## Install
+In this repository you can install Matrix chat only by Ansible! But you may install the ansible roles via 2 ways alternatively: via Bash script OR via a single all_in_one Ansible playbook.
 
 ### Bash script
 ```bash
