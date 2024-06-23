@@ -1,5 +1,11 @@
 #!/usr/bin/env ansible-playbook
 ---
+- name: Create a directory if it does not exist
+  file:
+    state: directory
+    path: "{{ tools_dir }}/matrix/synapse"
+    mode: '0755'
+
 - name: Copy synapse env
   become: true
   tags:

@@ -1,5 +1,11 @@
 #!/usr/bin/env ansible-playbook
 ---
+- name: Create a directory if it does not exist
+  file:
+    state: directory
+    path: "{{ tools_dir }}/nginx"
+    mode: '0755'
+
 - name: Copy compose file
   become: true
   tags:
@@ -10,6 +16,12 @@
     owner: root
     group: root
     mode: 0644
+
+- name: Create a directory if it does not exist
+  file:
+    state: directory
+    path: "{{ tools_dir }}/nginx/conf"
+    mode: '0755'
 
 - name: Copy nginx conf
   become: true
@@ -36,17 +48,17 @@
 - name: Copy dir vhost.d
   copy:
     src: vhost.d    # note the '/' <-- !!!
-    dest: {{ tools_dir }}/nginx/
+    dest: "{{ tools_dir }}/nginx/"
 
 - name: Copy dir modules
   copy:
     src: modules
-    dest: {{ tools_dir }}/nginx/
+    dest: "{{ tools_dir }}/nginx/"
 
 - name: Copy dir snippets
   copy:
     src: snippets
-    dest: {{ tools_dir }}/nginx/
+    dest: "{{ tools_dir }}/nginx/"
 
 #- name: Copy nginx jitsi dir
 #  become: true
@@ -63,11 +75,17 @@
 #  with_filetree: jitsi/
 #  when: item.state == 'file'
 
+- name: Create a directory if it does not exist
+  file:
+    state: directory
+    path: "{{ tools_dir }}/nginx/conf/conf"
+    mode: '0755'
+
 - name: copy nginx conf dir
   become: true
   template:
     src: "{{ item }}"
-    dest: {{ tools_dir }}/nginx/conf/conf/{{ item | basename | regex_replace('\\.j2$', '') }}
+    dest: "{{ tools_dir }}/nginx/conf/conf/{{ item | basename | regex_replace('\\.j2$', '') }}"
   with_fileglob:
     - ../templates/conf/conf/*.j2
 

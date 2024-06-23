@@ -1,0 +1,39 @@
+---
+
+# Nginx - Nexus
+- hosts: localhost
+  roles:
+    - { role: '{{playbook_dir}}/roles/nginx'}
+
+# Nexus
+- hosts: localhost
+  roles:
+    - { role: '{{playbook_dir}}/roles/nexus'}
+  tasks:
+    - name: Copy nexus volumes dir
+      copy:
+        src: "{{playbook_dir}}/nexus.volumes"
+        dest: "{{tools_dir}}/nexus/"
+
+# pause
+- hosts: localhost
+  tasks:
+    - name: A helpful reminder of what to look out for post-update
+      pause:
+        prompt: "Make sure https://repo.{{domain}} is up"
+
+# Nginx - Matrix
+- hosts: target
+  roles:
+    - { role: '{{playbook_dir}}/roles/nginx'}
+
+# Matrix
+- hosts: target
+  roles:
+    - { role: '{{playbook_dir}}/roles/synapse'}
+    - { role: '{{playbook_dir}}/roles/web'}
+
+# Jitsi
+- hosts: target
+  roles:
+    - { role: '{{playbook_dir}}/roles/jitsi'}

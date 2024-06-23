@@ -1,10 +1,12 @@
-tools_dir=$1
-domain=$2
+tools_dir=$3
+domain=$1
+targetIP=$2
 
 mkdir -p ${tools_dir}/nexus
 
 sed -i -E "s/domain:.*/domain: ${domain}/g" ./hosts.yml
 sed -i -E "s/tools_dir:.*/tools_dir: ${tools_dir}/g" ./hosts.yml
+sed -i -E '/^\s*target:/{n;s/\s*ansible_ssh_host:.*/      ansible_ssh_host: $targetIP/;}' ./hosts.yml
 
 # Nginx - Nexus
 echo "Up Nginx ..."

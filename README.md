@@ -22,5 +22,17 @@ ssh-copy-id root@matrix
 Add: 'StrictHostKeyChecking=accept-new' to your ssh config
 
 ## Install
+
+### Bash script
 sudo ./install.sh <domain> <IP> <path>
+
 sudo ./install.sh ghasedak.ir 192.168.122.15 /root/tools
+
+### Ansible
+1. Change variables `domain` and `tools_dir` and target host `IP`
+
+2. Install all:
+
+```bash
+ansible -i ./hosts.yml install.yml
+```

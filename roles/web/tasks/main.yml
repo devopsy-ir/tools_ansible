@@ -1,5 +1,11 @@
 #!/usr/bin/env ansible-playbook
 ---
+- name: Create a directory if it does not exist
+  file:
+    state: directory
+    path: "{{ tools_dir }}/matrix/web"
+    mode: '0755'
+
 - name: copy web env
   become: true
   tags:
@@ -22,8 +28,24 @@
     group: root
     mode: 0644
 
+- name: Copy web docker compose yaml
+  become: true
+  tags:
+    - copy_web_docker_compose
+  template:
+    src: "docker-compose.web.yml.j2"
+    dest: "{{ tools_dir }}/matrix/web/docker-compose.yml"
+    owner: root
+    group: root
+    mode: 0644
+
 - name: docker pull web
   command: "docker pull docker.{{ domain }}/vectorim/element-web:{{ ELEMENT_WEB_VERSION }}"
+  args:
+    chdir: "{{ tools_dir }}"
+
+- name: docker pull admin
+  command: "docker pull docker.{{ domain }}/awesometechnologies/synapse-admin:{{ SYNAPSE_ADMIN_VERSION }}"
   args:
     chdir: "{{ tools_dir }}"
 

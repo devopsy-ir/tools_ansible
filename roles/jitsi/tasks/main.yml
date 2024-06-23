@@ -1,5 +1,11 @@
 #!/usr/bin/env ansible-playbook
 ---
+- name: Create a directory if it does not exist
+  file:
+    state: directory
+    path: "{{ tools_dir }}/jitsi"
+    mode: '0755'
+
 - name: copy jitsi env
   become: true
   tags:
