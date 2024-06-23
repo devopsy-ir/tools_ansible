@@ -23,9 +23,13 @@ Add: 'StrictHostKeyChecking=accept-new' to your ssh config
 ## Install
 
 ### Bash script
+```bash
 sudo ./install.sh <domain> <IP> <path>
-
+```
+E.g.
+```bash
 sudo ./install.sh ghasedak.ir 192.168.122.15 /root/tools
+```
 
 ### Ansible
 1. In file `hosts.yml`: change variables `domain` and `tools_dir` and target host `IP`
