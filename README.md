@@ -1,7 +1,6 @@
 # tools
-Ansible  - Copy Nginx dirs of 'vhost.d' and etc.
 
-# requirements
+## requirements
 
 Install 'Ansible'
 
@@ -29,7 +28,7 @@ sudo ./install.sh <domain> <IP> <path>
 sudo ./install.sh ghasedak.ir 192.168.122.15 /root/tools
 
 ### Ansible
-1. Change variables `domain` and `tools_dir` and target host `IP`
+1. In file `hosts.yml`: change variables `domain` and `tools_dir` and target host `IP`
 
 2. Install all:
 
