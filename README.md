@@ -3,8 +3,13 @@
 ## requirements
 
 Install 'Ansible'
-
+```bash
+apt-get install -y ansible
+```
 Install 'rsync' on the Ansible workstation
+```bash
+apt-get install rsync
+```
 
 Add your SSH public key to root@localhost:
 ```bash
