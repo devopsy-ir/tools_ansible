@@ -28,7 +28,7 @@ sudo ./install.sh <domain> <IP> <path>
 ```
 E.g.
 ```bash
-sudo ./install.sh ghasedak.ir 192.168.122.15 /root/tools
+sudo ./install.sh PayamResan.ir 192.168.122.15 /root/tools
 ```
 
 ### Ansible
