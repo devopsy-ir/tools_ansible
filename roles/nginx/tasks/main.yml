@@ -27,8 +27,8 @@
   become: true
   tags:
     - copy_nginx_conf
-  template:
-    src: "nginx.conf"
+  copy:
+    src: "templates/conf/nginx.conf"
     dest: "{{ tools_dir }}/nginx/conf/nginx.conf"
     owner: root
     group: root
@@ -39,7 +39,7 @@
   tags:
     - copy_nginx_default_conf
   template:
-    src: "default.conf.j2"
+    src: "conf/default.conf.j2"
     dest: "{{ tools_dir }}/nginx/conf/default.conf"
     owner: root
     group: root
@@ -47,17 +47,17 @@
 
 - name: Copy dir vhost.d
   copy:
-    src: vhost.d    # note the '/' <-- !!!
+    src: "templates/vhost.d"    # note the '/' <-- !!!
     dest: "{{ tools_dir }}/nginx/"
 
 - name: Copy dir modules
   copy:
-    src: modules
+    src: "templates/modules"
     dest: "{{ tools_dir }}/nginx/"
 
 - name: Copy dir snippets
   copy:
-    src: snippets
+    src: "templates/snippets"
     dest: "{{ tools_dir }}/nginx/"
 
 #- name: Copy nginx jitsi dir
@@ -88,6 +88,12 @@
     dest: "{{ tools_dir }}/nginx/conf/conf/{{ item | basename | regex_replace('\\.j2$', '') }}"
   with_fileglob:
     - ../templates/conf/conf/*.j2
+
+- name: Create ssl dir
+  file:
+    state: directory
+    path: "{{ tools_dir }}/nginx/conf/certs/ssl/domain"
+    mode: '0755'
 
 - name: create self signed ssl certs
   command: 'openssl genrsa -out ca.key 2048 && openssl req -new -x509 -days 365 -key ca.key -subj "/C=CN/ST=GD/L=SZ/O=Acme, Inc./CN=Acme Root CA" -out ca.crt && openssl req -newkey rsa:2048 -nodes -keyout priv.key -subj "/C=CN/ST=GD/L=SZ/O=Acme, Inc./CN=*.{{ domain }}" -out cert.crt && openssl x509 -req -extfile <(printf "subjectAltName=DNS:{{ domain }},DNS:www.{{ domain }}") -days 365 -in cert.crt -CA ca.crt -CAkey ca.key -CAcreateserial -out cert.crt'

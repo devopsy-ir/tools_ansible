@@ -43,5 +43,5 @@ sudo ./install.sh PayamResan.ir 192.168.122.15 /root/tools
 2. Install all:
 
 ```bash
-ansible -i ./hosts.yml install.yml
+ansible-playbook -i ./hosts.yml install.yml
 ```
