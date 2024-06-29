@@ -95,8 +95,27 @@
     path: "{{ tools_dir }}/nginx/conf/certs/ssl/domain"
     mode: '0755'
 
+- name: create self signed ssl ca
+  become: true
+  command: "openssl genrsa -out ca.key 2048"
+  args:
+    chdir: "{{ tools_dir }}/nginx/conf/certs/ssl/domain"
+
+- name: create self signed ssl ca cert
+  become: true
+  command: "openssl req -new -x509 -days 365 -key ca.key -subj \"/C=CN/ST=GD/L=SZ/O=Acme, Inc./CN=Acme Root CA\" -out ca.crt"
+  args:
+    chdir: "{{ tools_dir }}/nginx/conf/certs/ssl/domain"
+
 - name: create self signed ssl certs
-  command: 'openssl genrsa -out ca.key 2048 && openssl req -new -x509 -days 365 -key ca.key -subj "/C=CN/ST=GD/L=SZ/O=Acme, Inc./CN=Acme Root CA" -out ca.crt && openssl req -newkey rsa:2048 -nodes -keyout priv.key -subj "/C=CN/ST=GD/L=SZ/O=Acme, Inc./CN=*.{{ domain }}" -out cert.crt && openssl x509 -req -extfile <(printf "subjectAltName=DNS:{{ domain }},DNS:www.{{ domain }}") -days 365 -in cert.crt -CA ca.crt -CAkey ca.key -CAcreateserial -out cert.crt'
+  become: true
+  command: "openssl req -newkey rsa:2048 -nodes -keyout priv.key -subj \"/C=CN/ST=GD/L=SZ/O=Acme, Inc./CN=*.{{ domain }}\" -out cert.crt"
+  args:
+    chdir: "{{ tools_dir }}/nginx/conf/certs/ssl/domain"
+
+- name: sign self signed ssl certs
+  become: true
+  command: 'openssl x509 -req -extfile <(printf "subjectAltName=DNS:{{ domain }},DNS:www.{{ domain }}") -days 365 -in cert.crt -CA ca.crt -CAkey ca.key -CAcreateserial -out cert.crt'
   args:
     chdir: "{{ tools_dir }}/nginx/conf/certs/ssl/domain"
 
